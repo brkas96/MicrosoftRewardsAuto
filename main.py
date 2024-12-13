@@ -53,11 +53,9 @@ def ler_creds():
     credenciais = os.path.join("pass.json")
     with open(credenciais, "r") as cred:
         creds = json.load(cred)
-        print(creds)
 
     email = creds["e"]
     senha = creds["p"]
-    print(email, senha)
     return email, senha
 
 
