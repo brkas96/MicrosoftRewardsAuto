@@ -27,6 +27,9 @@ wait = WebDriverWait(driver, 20)  # Ajuste o tempo conforme necessário
 
 action = ActionChains(driver)
 
+audios_path = os.path.join(os.getcwd(), "audios")
+print("Audios path:", audios_path)
+
 
 def tocar_audio(caminho_audio):
     try:
@@ -147,13 +150,13 @@ def process_cards(container_xpath, container_name):
 
 
 def main():
-    tocar_audio(os.path.join("audios", "Iniciando_daily_quests.mp3"))
+    tocar_audio(os.path.join(audios_path, "Iniciando_daily_quests.mp3"))
     login_to_rewards()
     # Chamada para processar os dois contêineres
     process_cards('//*[@id="daily-sets"]', "daily-sets")
     process_cards('//*[@id="more-activities"]/div', "more-activities")
 
-    tocar_audio(os.path.join("audios", "processo_concluido (online-audio-converter.com).mp3"))
+    tocar_audio(os.path.join(audios_path, "processo_concluido (online-audio-converter.com).mp3"))
     driver.quit()
     print("Script executado. Retornará em 24 horas.")
     time.sleep(120)
