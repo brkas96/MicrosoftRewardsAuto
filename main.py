@@ -14,10 +14,11 @@ import pygame
 
 # Configurações do navegador
 chrome_options = Options()
-#chrome_options.add_argument("--headless")  # Executa em segundo plano
+chrome_options.add_argument("--headless")  # Executa em segundo plano
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--enable-unsafe-swiftshader")
 
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -64,6 +65,11 @@ def login_to_rewards():
     email, senha = ler_creds()
     print("Acessando https://rewards.microsoft.com/")
     driver.get("https://rewards.microsoft.com/")  # Acesse a página de login
+    time.sleep(5)
+    state = driver.execute_script("return document.readyState")
+    if state == "loading":
+        print("A página ainda não foi carregada corretamente. Recarregando...")
+        driver.execute_script("window.location.reload()")  # Simula um reload da página
 
     # Preencher o campo de email
     email_field = wait.until(EC.element_to_be_clickable((By.NAME, "loginfmt")))  # Use o seletor correto
