@@ -13,14 +13,16 @@ from selenium.webdriver.common.action_chains import ActionChains
 import pygame
 from selenium.common.exceptions import TimeoutException
 
+user_data = os.path.join(os.getcwd(), "usuario")
 
 # Configurações do navegador
 chrome_options = Options()
-#chrome_options.add_argument("--headless")  # Executa em segundo plano
+chrome_options.add_argument("--headless")  # Executa em segundo plano
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--enable-unsafe-swiftshader")
+chrome_options.add_argument(f"user-data-dir={user_data}")
 
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -29,6 +31,9 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 wait = WebDriverWait(driver, 20)  # Ajuste o tempo conforme necessário
 
 action = ActionChains(driver)
+
+if not os.path.exists("usuario"):
+    os.mkdir("usuario")
 
 audios_path = os.path.join(os.getcwd(), "audios")
 print("Audios path:", audios_path)
@@ -39,6 +44,7 @@ def tocar_audio(caminho_audio):
         pygame.mixer.init()
     except Exception as e:
         print("Erro ao iniciar pygame. Continuando...")
+        print(e)
 
     """
     Função para tocar um áudio.
@@ -63,8 +69,6 @@ def ler_creds():
 
 def login_to_rewards():
     email, senha = ler_creds()
-    print("Acessando https://rewards.microsoft.com/")
-    driver.get("https://rewards.microsoft.com/")  # Acesse a página de login
     time.sleep(5)
     state = driver.execute_script("return document.readyState")
     if state == "loading":
@@ -124,7 +128,6 @@ def confirmar_informacoes():
         print("Tela de confirmação de informações não apareceu. Continuando o processo...")
 
 
-
 def process_cards(container_xpath, container_name):
     """
     Processa os cards dentro de um contêiner específico.
@@ -176,10 +179,33 @@ def process_cards(container_xpath, container_name):
             print(f"Erro ao interagir com o card {i} no contêiner '{container_name}': {e}")
 
 
+def verificar_login():
+    """
+    Verifica se a tela de login está presente.
+    Retorna True se a tela de login for encontrada, caso contrário, False.
+    """
+    try:
+        # Aguarda até que o campo de e-mail seja encontrado na página (indicativo de tela de login)
+        wait.until(EC.presence_of_element_located((By.NAME, "loginfmt")))  # Campo de e-mail
+        print("Tela de login detectada.")
+        return True
+    except:
+        print("Nenhuma tela de login detectada.")
+        return False
+
+
 def main():
     try:
         tocar_audio(os.path.join(audios_path, "Iniciando_daily_quests.mp3"))
-        login_to_rewards()
+
+        print("Acessando https://rewards.microsoft.com/")
+        driver.get("https://rewards.microsoft.com/")  # Acesse a página de login
+
+        if verificar_login():
+            login_to_rewards()
+        else:
+            print("O usuário já está logado. Prosseguindo...")
+
         # Chamada para processar os dois contêineres
         try:
             process_cards('//*[@id="daily-sets"]', "daily-sets")
