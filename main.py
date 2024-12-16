@@ -11,10 +11,12 @@ import json
 import time
 from selenium.webdriver.common.action_chains import ActionChains
 import pygame
+from selenium.common.exceptions import TimeoutException
+
 
 # Configurações do navegador
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # Executa em segundo plano
+#chrome_options.add_argument("--headless")  # Executa em segundo plano
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
@@ -99,7 +101,28 @@ def login_to_rewards():
     except Exception:
         print("Não apareceu o botão 'Manter conectado'.")
 
+    # Verifica se a tela de confirmar informações de recuperação de conta apareceu
+    confirmar_informacoes()
+
     print("Login realizado com sucesso.")
+
+
+# Caso apareça a tela para confirmar informações de recuperação de conta
+def confirmar_informacoes():
+    """
+    Detecta e clica no botão 'iLooksGood' caso a tela de confirmação de informações apareça.
+    """
+    try:
+        print("Verificando se a tela de confirmação de informações aparece...")
+        i_looks_good_button = WebDriverWait(driver, 15).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="iLooksGood"]'))
+        )
+        print("Tela de confirmação encontrada. Clicando no botão 'Tudo certo'.")
+        i_looks_good_button.click()
+        time.sleep(2)  # Aguarde um pouco após o clique
+    except TimeoutException:
+        print("Tela de confirmação de informações não apareceu. Continuando o processo...")
+
 
 
 def process_cards(container_xpath, container_name):
@@ -154,16 +177,28 @@ def process_cards(container_xpath, container_name):
 
 
 def main():
-    tocar_audio(os.path.join(audios_path, "Iniciando_daily_quests.mp3"))
-    login_to_rewards()
-    # Chamada para processar os dois contêineres
-    process_cards('//*[@id="daily-sets"]', "daily-sets")
-    process_cards('//*[@id="more-activities"]/div', "more-activities")
+    try:
+        tocar_audio(os.path.join(audios_path, "Iniciando_daily_quests.mp3"))
+        login_to_rewards()
+        # Chamada para processar os dois contêineres
+        try:
+            process_cards('//*[@id="daily-sets"]', "daily-sets")
+        except Exception as e:
+            print(e)
 
-    tocar_audio(os.path.join(audios_path, "processo_concluido (online-audio-converter.com).mp3"))
-    driver.quit()
-    print("Script executado. Retornará em 24 horas.")
-    time.sleep(120)
+        try:
+            process_cards('//*[@id="more-activities"]/div', "more-activities")
+        except Exception as e:
+            print(e)
+
+        tocar_audio(os.path.join(audios_path, "processo_concluido (online-audio-converter.com).mp3"))
+        driver.quit()
+        print("Script executado. Retornará em 24 horas.")
+        time.sleep(120)
+    except Exception as e:
+        print(e)
+    finally:
+        driver.quit()
 
 
 if __name__ == "__main__":
