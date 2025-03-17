@@ -12,6 +12,16 @@ import time
 from selenium.webdriver.common.action_chains import ActionChains
 import pygame
 from selenium.common.exceptions import TimeoutException
+import threading
+import logging
+
+# Configuração do logging
+logging.basicConfig(
+    level=logging.INFO,  # Níveis: DEBUG, INFO, WARNING, ERROR, CRITICAL
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="rewards_errors.log",  # Salva os logs em um arquivo
+    filemode="a"  # "a" para anexar ao arquivo, "w" para sobrescrever
+)
 
 user_data = os.path.join(os.getcwd(), "usuario")
 
@@ -154,8 +164,15 @@ def process_cards(container_xpath, container_name):
             print(f"Interagindo com o card {i} no contêiner '{container_name}'")
 
             # Mover para o card e clicar
-            action.move_to_element(card).click().perform()
-            time.sleep(2)
+            n = 0
+            while n < 10:
+                try:
+                    action.move_to_element(card).click().perform()
+                    time.sleep(2)
+                    break
+                except Exception as e:
+                    n += 1
+                    logging.error(f"Tentativa {n}/10 falhou ao clicar no card {i}: {e}")
 
             # Esperar até a nova guia abrir
             windows = driver.window_handles
@@ -176,7 +193,7 @@ def process_cards(container_xpath, container_name):
             time.sleep(1)
 
         except Exception as e:
-            print(f"Erro ao interagir com o card {i} no contêiner '{container_name}': {e}")
+            logging.error(f"Erro ao interagir com o card {i} no contêiner '{container_name}': {e}")
 
 
 def verificar_login():
@@ -196,7 +213,12 @@ def verificar_login():
 
 def main():
     try:
-        tocar_audio(os.path.join(audios_path, "Iniciando_daily_quests.mp3"))
+        try:
+            audio_thread = threading.Thread(target=tocar_audio,
+                                            args=(os.path.join(audios_path, "Iniciando_daily_quests.mp3"),))
+            audio_thread.start()
+        except Exception as e:
+            logging.error(f"Erro ao tocar audio: {e}")
 
         print("Acessando https://rewards.microsoft.com/")
         driver.get("https://rewards.microsoft.com/")  # Acesse a página de login
@@ -210,19 +232,25 @@ def main():
         try:
             process_cards('//*[@id="daily-sets"]', "daily-sets")
         except Exception as e:
-            print(e)
+            logging.error(f"Erro ao processar containers: {e}")
 
         try:
             process_cards('//*[@id="more-activities"]/div', "more-activities")
         except Exception as e:
-            print(e)
+            logging.error(f"Erro ao processar cards: {e}")
 
-        tocar_audio(os.path.join(audios_path, "processo_concluido (online-audio-converter.com).mp3"))
-        driver.quit()
-        print("Script executado. Retornará em 24 horas.")
+        try:
+            audio_thread = threading.Thread(target=tocar_audio,
+                                            args=(os.path.join(audios_path,
+                                                               "processo_concluido (online-audio-converter.com).mp3"),))
+            audio_thread.start()
+        except Exception as e:
+            logging.error(f"Erro ao executar áudio: {e}")
+
+        print("Script executado")
         time.sleep(120)
     except Exception as e:
-        print(e)
+        logging.error(f"Erro geral: {e}")
     finally:
         driver.quit()
 
