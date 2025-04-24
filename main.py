@@ -15,6 +15,7 @@ from selenium.common.exceptions import TimeoutException
 import threading
 import logging
 import sys
+from dotenv import load_dotenv # Biblioteca para criar e usar variaveis de ambiente
 
 # Configuração do logging
 logging.basicConfig(
@@ -97,12 +98,18 @@ def tocar_audio(caminho_audio):
 
 
 def ler_creds():
-    credenciais = os.path.join("pass.json")
-    with open(credenciais, "r") as cred:
-        creds = json.load(cred)
+    if os.path.exists(".env"):
+        load_dotenv()  # Carrega variáveis do .env
 
-    email = creds["e"]
-    senha = creds["p"]
+        email = os.getenv("OUTLOOK_EMAIL")
+        senha = os.getenv("OUTLOOK_PASS")
+    else:
+        credenciais = os.path.join("pass.json")
+        with open(credenciais, "r") as cred:
+            creds = json.load(cred)
+
+        email = creds["e"]
+        senha = creds["p"]
     return email, senha
 
 
