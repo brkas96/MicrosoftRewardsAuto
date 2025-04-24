@@ -26,9 +26,27 @@ logging.basicConfig(
 
 user_data = os.path.join(os.getcwd(), "usuario")
 
+
+def verificar_config_headless():
+    config_path = os.path.join(os.getcwd(), "config.txt")
+
+    if not os.path.exists(config_path):
+        # Cria com headless desativado (primeira execução)
+        with open(config_path, "w") as f:
+            f.write("headless=false")
+
+    with open(config_path, "r") as f:
+        for line in f:
+            if "headless=true" in line.lower():
+                return True
+    return False
+
+
 # Configurações do navegador
 chrome_options = Options()
 #chrome_options.add_argument("--headless")  # Executa em segundo plano (Sem interface do Chrome)
+if verificar_config_headless():
+    chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
@@ -254,6 +272,7 @@ def verificar_login():
         # Aguarda até que o campo de e-mail seja encontrado na página (indicativo de tela de login)
         wait.until(EC.presence_of_element_located((By.NAME, "loginfmt")))  # Campo de e-mail
         print("Tela de login detectada.")
+        desativar_headless_em_config()
         return True
     except:
         print("Nenhuma tela de login detectada.")
@@ -272,6 +291,16 @@ def criar_pass_json():
         print("Arquivo 'pass.json' criado com sucesso.")
     except:
         print("Erro ao criar pass.json")
+
+
+def ativar_headless_em_config():
+    with open("config.txt", "w") as f:
+        f.write("headless=true")
+
+
+def desativar_headless_em_config():
+    with open("config.txt", "w") as f:
+        f.write("headless=false")
 
 
 def main():
@@ -303,6 +332,7 @@ def main():
             login_to_rewards()
         else:
             print("O usuário já está logado. Prosseguindo...")
+            ativar_headless_em_config()
 
         # Chamada para processar os dois contêineres
         try:
