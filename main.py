@@ -14,6 +14,7 @@ import pygame
 from selenium.common.exceptions import TimeoutException
 import threading
 import logging
+import sys
 
 # Configuração do logging
 logging.basicConfig(
@@ -45,11 +46,17 @@ action = ActionChains(driver)
 if not os.path.exists("usuario"):
     os.mkdir("usuario")
 
-audios_path = os.path.join(os.getcwd(), "audios")
-print("Audios path:", audios_path)
+
+def recurso_caminho(rel_path):
+    """Ajusta o caminho para funcionar com PyInstaller (em .exe)"""
+    if getattr(sys, 'frozen', False):  # Executável compilado
+        return os.path.join(sys._MEIPASS, rel_path)
+    return os.path.join(os.getcwd(), rel_path)
 
 
 def tocar_audio(caminho_audio):
+    print(caminho_audio)
+
     try:
         pygame.mixer.init()
     except Exception as e:
@@ -59,12 +66,16 @@ def tocar_audio(caminho_audio):
     """
     Função para tocar um áudio.
     """
-    pygame.mixer.music.load(caminho_audio)  # Carrega o arquivo de áudio
-    pygame.mixer.music.play()  # Reproduz o áudio
-    while pygame.mixer.music.get_busy():  # Aguarda o áudio terminar
-        time.sleep(0.1)
-    pygame.mixer.music.stop()
-    pygame.mixer.quit()
+    try:
+        pygame.mixer.music.load(caminho_audio)  # Carrega o arquivo de áudio
+        pygame.mixer.music.play()  # Reproduz o áudio
+        while pygame.mixer.music.get_busy():  # Aguarda o áudio terminar
+            time.sleep(0.1)
+        pygame.mixer.music.stop()
+    except Exception as e:
+        logging.error(f"Erro ao tocar audio:{caminho_audio}: {e} ")
+    finally:
+        pygame.mixer.quit()
 
 
 def ler_creds():
@@ -211,11 +222,38 @@ def verificar_login():
         return False
 
 
+def criar_pass_json():
+    dados = {
+        "e": "SEU_EMAIL@outlook.com",
+        "p": "SUA_SENHA"
+    }
+    try:
+        with open("pass.json", "w") as arquivo:
+            json.dump(dados, arquivo, indent=2)
+
+        print("Arquivo 'pass.json' criado com sucesso.")
+    except:
+        print("Erro ao criar pass.json")
+
+
 def main():
+    print("ATENÇÃO, É NECESSÁRIO QUE O GOOGLE CHROME ESTEJA INSTALADO")
+    print("YOU NEED GOOGLE CHROME INSTALLED IN YOUR PC")
+    audios_path = recurso_caminho("audios")
+    print("Audios path:", audios_path)
+
+    if not os.path.exists(os.path.join(os.getcwd(), "pass.json")):
+        try:
+            criar_pass_json()
+        except Exception as e:
+            logging.error(f"Erro ao criar pass.json {e}")
+
+    AUDIO_INICIO = os.path.join(str(audios_path), "Iniciando_daily_quests.mp3")
+    AUDIO_FIM = os.path.join(str(audios_path), "processo_concluido (online-audio-converter.com).mp3")
+
     try:
         try:
-            audio_thread = threading.Thread(target=tocar_audio,
-                                            args=(os.path.join(audios_path, "Iniciando_daily_quests.mp3"),))
+            audio_thread = threading.Thread(target=tocar_audio, args=(str(AUDIO_INICIO),))
             audio_thread.start()
         except Exception as e:
             logging.error(f"Erro ao tocar audio: {e}")
@@ -241,14 +279,13 @@ def main():
 
         try:
             audio_thread = threading.Thread(target=tocar_audio,
-                                            args=(os.path.join(audios_path,
-                                                               "processo_concluido (online-audio-converter.com).mp3"),))
+                                            args=(os.path.join(AUDIO_FIM),))
             audio_thread.start()
         except Exception as e:
             logging.error(f"Erro ao executar áudio: {e}")
 
         print("Script executado")
-        time.sleep(120)
+        time.sleep(60)
     except Exception as e:
         logging.error(f"Erro geral: {e}")
     finally:

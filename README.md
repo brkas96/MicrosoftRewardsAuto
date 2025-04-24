@@ -17,7 +17,7 @@ PyInstaller with the main.spec file provided in this project.
 
 - Rename the file "pass_exemple.json" to just "pass.json".
 - Add your Microsoft account credentials to it (your email and password).
-- The "audios" folder and pass.json must be in the same directory as the program's executable.
+- The pass.json must be in the same directory as the program's executable.
 - Open the Windows Task Scheduler and configure the program to start according to your preferences.
 - Arguments in Windows Task Scheduler (Exemple):
     - Program/Script: `"C:\Users\USERNAME\OneDrive\Documents\Compiled Python Programs\Microsoft Rewards Auto\Microsoft Rewards Auto.exe"`
@@ -29,7 +29,7 @@ PyInstaller with the main.spec file provided in this project.
 
 - Primeiro, renomeie o arquivo "pass_exemple.json" para apenas "pass.json"
 - Coloque as credenciais da sua conta Microsoft nele. (Seu email e senha)
-- A pasta "audios" deve estar na mesma pasta do exe do programa
+- A pasta "audios" já está inclusa no compilado exe.
 - Abra o Agendador de Tarefas do Windows e configure o programa para iniciar de acordo com suas preferencias
 - Argumentos no Agendador de Tarefas do Windows (Exemplo):
     - Programa/Script: "C:\Users\USERNAME\OneDrive\Documentos\Programas Python Compilados\Microsoft Rewards Auto\Microsoft Rewards Auto.exe"

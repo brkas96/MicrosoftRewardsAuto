@@ -1,11 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 
+from PyInstaller.utils.hooks import collect_data_files
+import os
+
+# Inclui todos os arquivos da pasta "audios"
+audios_path = os.path.join('audios', '*')
+
+
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('audios', 'audios')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -29,7 +36,7 @@ exe = EXE(
     upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=True,
     argv_emulation=False,
     target_arch=None,
