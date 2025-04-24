@@ -40,3 +40,6 @@ PyInstaller with the main.spec file provided in this project.
 Vez ou outra, pode aparecer a tela para confirmar minha infomações de segurança durante o login, perguntando se eu quero
 mudar alguma coisa. Implementei a função "confirmar_informacoes()" para tentar clicar no botão e processeguir com o login
 porém ainda não funcionou. Vou ter que aguardar essa tela aparecer novamente para testar alguma forma que dê certo.
+
+O login pode exigir autorização via código de confirmação. A unica forma é usuario adquirir o código manualmente.
+(Implementar um wait maior para que o usuario possa fazer a confirmação do código manualmente)

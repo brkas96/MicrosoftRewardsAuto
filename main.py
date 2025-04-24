@@ -28,7 +28,7 @@ user_data = os.path.join(os.getcwd(), "usuario")
 
 # Configurações do navegador
 chrome_options = Options()
-chrome_options.add_argument("--headless")  # Executa em segundo plano
+#chrome_options.add_argument("--headless")  # Executa em segundo plano (Sem interface do Chrome)
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
@@ -107,6 +107,9 @@ def login_to_rewards():
     next_button.click()
     sleep(3)  # Aguarde a página carregar
 
+    if detectar_tela_confirmacao_email():
+        aguardar_confirmacao_email()
+
     # Preencher o campo de senha
     password_field = wait.until(EC.element_to_be_clickable((By.NAME, "passwd")))  # Use o seletor correto
     print("Preenchendo campo de senha")
@@ -147,6 +150,41 @@ def confirmar_informacoes():
         time.sleep(2)  # Aguarde um pouco após o clique
     except TimeoutException:
         print("Tela de confirmação de informações não apareceu. Continuando o processo...")
+
+
+def detectar_tela_confirmacao_email():
+    """
+    Retorna True se a tela de verificação por código estiver presente.
+    """
+    try:
+        elementos = driver.find_elements(By.XPATH, '//*[@id="i0281"]/div[2]')
+        return len(elementos) > 0
+    except Exception as e:
+        logging.error(f"Erro ao verificar tela de confirmação por email: {e}")
+        return False
+
+
+def aguardar_confirmacao_email():
+    """
+    Aguarda até que o usuário complete a confirmação manual de código enviada por email.
+    """
+    try:
+        print("Verificação por código detectada. Aguardando confirmação manual do usuário...")
+
+        # Aguarda enquanto o campo de verificação estiver visível
+        WebDriverWait(driver, 300).until_not(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="i0281"]/div[2]'))
+        )
+
+        # Agora espera até que o usuário insira o código e prossiga
+        WebDriverWait(driver, 300).until_not(
+            EC.presence_of_element_located((By.NAME, "otc"))
+        )
+        print("Verificação manual concluída.")
+
+        print("Confirmação por código concluída. Prosseguindo...")
+    except TimeoutException:
+        logging.error("Tempo excedido aguardando confirmação por código.")
 
 
 def process_cards(container_xpath, container_name):
